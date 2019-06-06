@@ -7,7 +7,7 @@ request = Request.Request()
 pwd_normal = Tools.random_str_abc(3) + Tools.random_123(3)
 url = Login.url
 
-excel_list = read_excel.read_excel_list('./document/商品分类.xlsx')
+excel_list = read_excel.read_excel_list('./document/用户注册.xlsx')
 ids_list = []
 for i in range(len(excel_list)):
     # 删除excel_list中每个小list的最后一个元素,并赋值给ids_pop
@@ -16,10 +16,13 @@ for i in range(len(excel_list)):
     ids_list.append(ids_pop)
 
 @allure.feature('注册/登录模块')
+@pytest.mark.user
 class Test_user():
 
     @allure.story('注册接口1')
+    @pytest.mark.user
     def test_signup1(self):
+
         user_sig_resp = request.post_request(url=url + 'user/signup',
                                             json = {"phone": Tools.phone_num(), "pwd":pwd_normal , "rePwd": pwd_normal,
                                                   "userName": Tools.random_str_abc(2)+Tools.random_123(1)})
@@ -30,10 +33,15 @@ class Test_user():
 
     @allure.story('注册接口2')
     @pytest.mark.parametrize('phone,pwd,rePwd,userName,numb', excel_list, ids=ids_list)
+    @pytest.mark.user
     def test_signup2(self, phone, pwd, rePwd, userName, numb):
         user_sig_resp = request.post_request(url=url + 'user/signup',
                                              json={"phone": phone, "pwd": pwd, "rePwd": rePwd,
                                                    "userName": userName})
+
+        assertions.assert_code(user_sig_resp.status_code,200)
+        resp_json = user_sig_resp.json()
+        assertions.assert_in_text(resp_json['respCode'],numb)
 
 
 
