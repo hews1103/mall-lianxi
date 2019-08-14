@@ -1,18 +1,17 @@
 import allure
 import pytest
 import xlrd
-from Common import Request,Assert
+from Common import Request,Assert,read_excel
 url='http://192.168.2.39:8280'
 
 request = Request.Request()
 assertions = Assert.Assertions()
 
-workbook = xlrd.open_workbook(filename='../document/联想搜索.xlsx')
-sheet = workbook.sheet_by_index(0)
-for i in range(1,sheet.nrows):
-    d={}
-    for j in range(sheet.ncols):
-        d[sheet.row(0)[j]]=sheet.row(i)[j]
+excel_list = read_excel.read_excel_list('./document/联想搜索.xlsx')
+ids=[]
+for i in range(len(excel_list)):
+    list_pop = excel_list[i].pop()
+    ids.append(list_pop)
 
 
 @allure.feature("仓库信息")
@@ -34,13 +33,13 @@ class Test_gyl:
         assertions.assert_in_text(reps_json['errorMsg'],'响应成功')
 
     @allure.story("联想搜索")
-    @pytest.mark.parametrize()
-    def test_lxss1(self):
+    @pytest.mark.parametrize('keys,vague,code,msg',excel_list,ids=ids)
+    def test_lxss1(self,keys,vague,code,msg):
         get_reps = request.get_request(url=url + '/warehouseInfo/searchWarehouseInfo',
-                                       params={'keys':'cwhname' , 'vague': '保税仓'})
-        assertions.assert_code(get_reps.status_code,200)
+                                       params={'keys':keys , 'vague': vague})
+        assertions.assert_code(get_reps.status_code,code)
         reps_json = get_reps.json()
-        assertions.assert_in_text(reps_json['errorMsg'],'响应成功')
+        assertions.assert_in_text(reps_json['errorMsg'],msg)
 
     @allure.story("根据id查询仓库详情")
     def test_ckxq(self):
