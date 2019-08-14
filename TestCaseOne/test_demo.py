@@ -1,9 +1,19 @@
 import allure
+import pytest
+import xlrd
 from Common import Request,Assert
 url='http://192.168.2.39:8280'
 
 request = Request.Request()
 assertions = Assert.Assertions()
+
+workbook = xlrd.open_workbook(filename='../document/联想搜索.xlsx')
+sheet = workbook.sheet_by_index(0)
+for i in range(1,sheet.nrows):
+    d={}
+    for j in range(sheet.ncols):
+        d[sheet.row(0)[j]]=sheet.row(i)[j]
+
 
 @allure.feature("仓库信息")
 class Test_gyl:
@@ -24,6 +34,7 @@ class Test_gyl:
         assertions.assert_in_text(reps_json['errorMsg'],'响应成功')
 
     @allure.story("联想搜索")
+    @pytest.mark.parametrize()
     def test_lxss1(self):
         get_reps = request.get_request(url=url + '/warehouseInfo/searchWarehouseInfo',
                                        params={'keys':'cwhname' , 'vague': '保税仓'})
